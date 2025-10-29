@@ -2,6 +2,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddProblemDetails();
+builder.Services.AddSwaggerGen();
 
 // DI wiring
 builder.Services.AddSingleton<BookCatalog.Application.Interfaces.IAuthorRepository, BookCatalog.Infrastructure.InMemory.Repositories.AuthorRepositoryInMemory>();
@@ -41,6 +42,10 @@ app.MapGet("/", () => Results.Ok(new { name = "BookCatalog API", status = "ok" }
 var v1 = app.MapGroup("/api/v1");
 BookCatalog.Api.Endpoints.BooksEndpoints.MapBooksEndpoints(v1);
 BookCatalog.Api.Endpoints.AuthorsEndpoints.MapAuthorsEndpoints(v1);
+
+// Swagger
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.Run();
 
