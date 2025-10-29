@@ -32,7 +32,7 @@ public static class BooksEndpoints
             }
         });
 
-        group.MapPut("/{id:int}", async (int id, IBookService svc, CreateBookRequest request, CancellationToken ct) =>
+        group.MapPut("/{id:int}", async (int id, IBookService svc, UpdateBookRequest request, CancellationToken ct) =>
         {
             try
             {

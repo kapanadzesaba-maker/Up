@@ -75,7 +75,24 @@ public class BookService : IBookService
         }
     }
 
-    public async Task UpdateAsync(int id, CreateBookRequest request, CancellationToken cancellationToken = default)
+    private static void Validate(UpdateBookRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Title))
+        {
+            throw new ArgumentException("Title cannot be empty", nameof(request.Title));
+        }
+        var currentYear = DateTime.UtcNow.Year;
+        if (request.PublicationYear > currentYear)
+        {
+            throw new ArgumentException("PublicationYear cannot be in the future", nameof(request.PublicationYear));
+        }
+        if (request.AuthorId <= 0)
+        {
+            throw new ArgumentException("AuthorId must be positive", nameof(request.AuthorId));
+        }
+    }
+
+    public async Task UpdateAsync(int id, UpdateBookRequest request, CancellationToken cancellationToken = default)
     {
         Validate(request);
         var existing = await _bookRepository.GetByIdAsync(id, cancellationToken);
