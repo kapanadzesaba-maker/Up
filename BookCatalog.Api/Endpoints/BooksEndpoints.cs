@@ -9,9 +9,9 @@ public static class BooksEndpoints
     {
         var group = app.MapGroup("/api/books");
 
-        group.MapGet("/", async (IBookService svc, CancellationToken ct) =>
+        group.MapGet("/", async (IBookService svc, int? publicationYear, string? sortBy, int? page, int? pageSize, CancellationToken ct) =>
         {
-            var items = await svc.GetAllAsync(ct);
+            var items = await svc.GetAllAsync(publicationYear, sortBy, page, pageSize, ct);
             return Results.Ok(items);
         });
 

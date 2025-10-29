@@ -16,15 +16,35 @@ public class BookService : IBookService
         _bookMapper = bookMapper;
     }
 
-    public async Task<IReadOnlyList<BookDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<BookDto>> GetAllAsync(int? publicationYear = null, string? sortBy = null, int? page = null, int? pageSize = null, CancellationToken cancellationToken = default)
     {
         var books = await _bookRepository.ListAsync(cancellationToken);
         var authors = await _authorRepository.ListAsync(cancellationToken);
         var authorLookup = authors.ToDictionary(a => a.Id);
-        return books
+        var query = books
             .Where(b => authorLookup.ContainsKey(b.AuthorId))
-            .Select(b => _bookMapper.ToDto(b, authorLookup[b.AuthorId]))
-            .ToList();
+            .AsEnumerable();
+
+        if (publicationYear.HasValue)
+        {
+            query = query.Where(b => b.PublicationYear == publicationYear.Value);
+        }
+
+        IEnumerable<BookDto> result = query.Select(b => _bookMapper.ToDto(b, authorLookup[b.AuthorId]));
+
+        if (!string.IsNullOrWhiteSpace(sortBy))
+        {
+            result = sortBy.Equals("title", StringComparison.OrdinalIgnoreCase)
+                ? result.OrderBy(d => d.Title)
+                : result.OrderBy(d => d.Id);
+        }
+
+        if (page.HasValue && pageSize.HasValue && page.Value > 0 && pageSize.Value > 0)
+        {
+            result = result.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value);
+        }
+
+        return result.ToList();
     }
 
     public async Task<IReadOnlyList<BookDto>> GetByAuthorAsync(int authorId, CancellationToken cancellationToken = default)
