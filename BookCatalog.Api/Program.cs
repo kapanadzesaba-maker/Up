@@ -37,9 +37,10 @@ app.UseExceptionHandler(errorApp =>
 
 app.MapGet("/", () => Results.Ok(new { name = "BookCatalog API", status = "ok" }));
 
-// Endpoint groups
-BookCatalog.Api.Endpoints.BooksEndpoints.MapBooksEndpoints(app);
-BookCatalog.Api.Endpoints.AuthorsEndpoints.MapAuthorsEndpoints(app);
+// API v1 route group
+var v1 = app.MapGroup("/api/v1");
+BookCatalog.Api.Endpoints.BooksEndpoints.MapBooksEndpoints(v1);
+BookCatalog.Api.Endpoints.AuthorsEndpoints.MapAuthorsEndpoints(v1);
 
 app.Run();
 

@@ -7,7 +7,7 @@ public static class BooksEndpoints
 {
     public static IEndpointRouteBuilder MapBooksEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/books");
+        var group = app.MapGroup("/books");
 
         group.MapGet("/", async (IBookService svc, int? publicationYear, string? sortBy, int? page, int? pageSize, CancellationToken ct) =>
         {
