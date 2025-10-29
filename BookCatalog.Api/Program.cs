@@ -11,7 +11,29 @@ builder.Services.AddSingleton<BookCatalog.Application.Interfaces.IBookService, B
 
 var app = builder.Build();
 
-app.UseExceptionHandler();
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var feature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+        var ex = feature?.Error;
+        if (ex is ArgumentException)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await context.Response.WriteAsJsonAsync(new ProblemDetails { Title = "Validation failed", Detail = ex.Message, Status = StatusCodes.Status400BadRequest });
+            return;
+        }
+        if (ex is KeyNotFoundException ke)
+        {
+            var isBook = ke.Message.StartsWith("Book ");
+            context.Response.StatusCode = isBook ? StatusCodes.Status404NotFound : StatusCodes.Status400BadRequest;
+            await context.Response.WriteAsJsonAsync(new ProblemDetails { Title = isBook ? "Book not found" : "Author not found", Detail = ke.Message, Status = context.Response.StatusCode });
+            return;
+        }
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await context.Response.WriteAsJsonAsync(new ProblemDetails { Title = "Unexpected error" , Detail = ex?.Message, Status = StatusCodes.Status500InternalServerError });
+    });
+});
 
 app.MapGet("/", () => Results.Ok(new { name = "BookCatalog API", status = "ok" }));
 
