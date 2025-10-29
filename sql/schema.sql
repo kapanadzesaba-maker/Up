@@ -2,25 +2,27 @@
 
 -- 1. CREATE TABLE Scripts
 CREATE TABLE Authors (
-    Id INT PRIMARY KEY,
+    Id INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(200) NOT NULL
 );
 
 CREATE TABLE Books (
-    Id INT PRIMARY KEY,
+    Id INT IDENTITY(1,1) PRIMARY KEY,
     Title NVARCHAR(300) NOT NULL,
     AuthorId INT NOT NULL,
-    PublicationYear INT NOT NULL,
+    PublicationYear INT NOT NULL CHECK (PublicationYear <= YEAR(GETUTCDATE())),
     CONSTRAINT FK_Books_Authors FOREIGN KEY (AuthorId) REFERENCES Authors(Id)
 );
 
--- 2. INSERT Script
-INSERT INTO Authors (Id, Name) VALUES (1, 'Robert C. Martin');
-INSERT INTO Authors (Id, Name) VALUES (2, 'Jeffrey Richter');
+CREATE INDEX IX_Books_AuthorId ON Books(AuthorId);
 
-INSERT INTO Books (Id, Title, AuthorId, PublicationYear) VALUES (1, 'Clean Code', 1, 2008);
-INSERT INTO Books (Id, Title, AuthorId, PublicationYear) VALUES (2, 'CLR via C#', 2, 2012);
-INSERT INTO Books (Id, Title, AuthorId, PublicationYear) VALUES (3, 'The Clean Coder', 1, 2011);
+-- 2. INSERT Script
+INSERT INTO Authors (Name) VALUES ('Robert C. Martin');
+INSERT INTO Authors (Name) VALUES ('Jeffrey Richter');
+
+INSERT INTO Books (Title, AuthorId, PublicationYear) VALUES ('Clean Code', 1, 2008);
+INSERT INTO Books (Title, AuthorId, PublicationYear) VALUES ('CLR via C#', 2, 2012);
+INSERT INTO Books (Title, AuthorId, PublicationYear) VALUES ('The Clean Coder', 1, 2011);
 
 -- 3. UPDATE Script
 UPDATE Books SET PublicationYear = 2013 WHERE Id = 2;
