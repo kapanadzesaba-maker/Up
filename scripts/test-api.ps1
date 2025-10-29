@@ -60,7 +60,7 @@ function Test-Endpoint {
     try { $content = [System.IO.StreamReader]::new($resp.GetResponseStream()).ReadToEnd() } catch { $content = $resp.Content }
     $json = Parse-Json -Content $content
     $ok = ($status -eq $ExpectedStatus)
-    if ($ok -and $Validate) { try { $ok = & $Validate $json } catch { $ok = $false } }
+    if ($ok -and $Validate) { try { $ok = [bool](& $Validate $json) } catch { $ok = $false } }
     if ($ok) { $script:passed++ }
     $detail = if ($json) { $json | ConvertTo-Json -Depth 6 } else { $content }
     Write-Result -Name $Name -Passed $ok -Status $status -Detail $detail
@@ -76,7 +76,7 @@ Test-Endpoint -Name 'Swagger' -Method 'GET' -Path '/swagger' | Out-Null
 # Lists
 Test-Endpoint -Name 'Books - list' -Method 'GET' -Path '/api/v1/books' -Validate { param($j) $j -is [System.Array] -and $j.Count -ge 3 }
 Test-Endpoint -Name 'Books - filter by year' -Method 'GET' -Path '/api/v1/books?publicationYear=2011' -Validate { param($j) @($j | Where-Object { $_.publicationYear -ne 2011 }).Count -eq 0 }
-Test-Endpoint -Name 'Books - sort by title' -Method 'GET' -Path '/api/v1/books?sortBy=title' -Validate { param($j) $titles = $j.title; $titles -eq ($titles | Sort-Object) }
+Test-Endpoint -Name 'Books - sort by title' -Method 'GET' -Path '/api/v1/books?sortBy=title' -Validate { param($j) $titles = @($j | ForEach-Object { $_.title }); ($titles -join '|') -eq ((@($titles | Sort-Object)) -join '|') }
 Test-Endpoint -Name 'Books - paginate' -Method 'GET' -Path '/api/v1/books?page=1&pageSize=2' -Validate { param($j) $j.Count -le 2 }
 
 # Author books
