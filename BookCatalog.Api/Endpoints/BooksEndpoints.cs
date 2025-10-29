@@ -32,6 +32,24 @@ public static class BooksEndpoints
             }
         });
 
+        group.MapPut("/{id:int}", async (int id, IBookService svc, CreateBookRequest request, CancellationToken ct) =>
+        {
+            try
+            {
+                await svc.UpdateAsync(id, request, ct);
+                return Results.NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.Problem(title: "Validation failed", detail: ex.Message, statusCode: StatusCodes.Status400BadRequest);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                var isBook = ex.Message.StartsWith("Book ");
+                return Results.Problem(title: isBook ? "Book not found" : "Author not found", detail: ex.Message, statusCode: isBook ? StatusCodes.Status404NotFound : StatusCodes.Status400BadRequest);
+            }
+        });
+
         return app;
     }
 }

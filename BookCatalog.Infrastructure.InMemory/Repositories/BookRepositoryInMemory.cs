@@ -30,4 +30,16 @@ public class BookRepositoryInMemory : IBookRepository
         var books = InMemoryData.Books.Where(b => b.AuthorId == authorId).ToList();
         return Task.FromResult((IReadOnlyList<Book>)books);
     }
+
+    public Task UpdateAsync(Book book, CancellationToken cancellationToken = default)
+    {
+        var existing = InMemoryData.Books.FirstOrDefault(b => b.Id == book.Id);
+        if (existing is not null)
+        {
+            existing.Title = book.Title;
+            existing.AuthorId = book.AuthorId;
+            existing.PublicationYear = book.PublicationYear;
+        }
+        return Task.CompletedTask;
+    }
 }

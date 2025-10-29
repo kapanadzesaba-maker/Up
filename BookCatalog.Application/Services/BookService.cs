@@ -74,4 +74,23 @@ public class BookService : IBookService
             throw new ArgumentException("AuthorId must be positive", nameof(request.AuthorId));
         }
     }
+
+    public async Task UpdateAsync(int id, CreateBookRequest request, CancellationToken cancellationToken = default)
+    {
+        Validate(request);
+        var existing = await _bookRepository.GetByIdAsync(id, cancellationToken);
+        if (existing is null)
+        {
+            throw new KeyNotFoundException($"Book {id} not found");
+        }
+        var author = await _authorRepository.GetByIdAsync(request.AuthorId, cancellationToken);
+        if (author is null)
+        {
+            throw new KeyNotFoundException($"Author {request.AuthorId} not found");
+        }
+        existing.Title = request.Title.Trim();
+        existing.AuthorId = request.AuthorId;
+        existing.PublicationYear = request.PublicationYear;
+        await _bookRepository.UpdateAsync(existing, cancellationToken);
+    }
 }
